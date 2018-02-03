@@ -1,0 +1,23 @@
+{
+  "name": "electron-zero-broadcast",
+  "version": "0.1.0",
+  "description": "Zero-configuration broadcasting in electron",
+  "main": "lib/broadcast.js",
+  "repository": "https://github.com/gwangyi/electron-zero-broadcast",
+  "author": "Sungkwang Lee <gwangyi.kr@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.39",
+    "@babel/core": "^7.0.0-beta.39",
+    "@babel/preset-env": "^7.0.0-beta.39"
+  },
+  "babel": {
+    "presets": [
+      "@babel/env"
+    ]
+  },
+  "scripts": {
+    "build": "babel -d lib src",
+    "watch": "babel -d lib src --watch"
+  }
+}
