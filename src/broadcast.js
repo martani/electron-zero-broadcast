@@ -5,18 +5,28 @@ class MainBroadcastObject extends EventEmitter {
     constructor() {
         super()
         electron.ipcMain.on('zero:broadcast:main', (event, {channel, args}) => {
-            this.emit.apply(this, [channel, ...args])
+            this.emit(channel, ...args)
+        }).on('zero:broadcast:subscribe', (event, type, id) => {
+            let win = electron.BrowserWindow.fromId(id)
+            if(!win.__ezb) win.__ezb = {}
+            win.__ezb[type] = true
+        }).on('zero:broadcast:unscribe', (event, type, id) => {
+            let win = electron.BrowserWindow.fromId(id)
+            if(win.__ezb)
+                delete win.__ezb[type]
         })
     }
 
     emit(channel, ...args) {
-        EventEmitter.prototype.emit.apply(this, [channel, ...args])
+        super.emit(channel, ...args)
         electron.BrowserWindow.getAllWindows().forEach(win => {
-            const invoke = () => win.webContents.send('zero:broadcast:renderer', {channel, args})
-            if(win.webContents.isLoading()) {
-                win.webContents.once('did-finish-load', invoke)
-            } else {
-                invoke()
+            if(win.__ezb && win.__ezb[channel]) {
+                const invoke = () => win.webContents.send('zero:broadcast:renderer', {channel, args})
+                if(win.webContents.isLoading()) {
+                    win.webContents.once('did-finish-load', invoke)
+                } else {
+                    invoke()
+                }
             }
         })
     }
@@ -25,13 +35,25 @@ class MainBroadcastObject extends EventEmitter {
 class RendererBroadcastObject extends EventEmitter {
     constructor() {
         super()
+        this._windowId = electron.remote.getCurrentWindow().id
         electron.ipcRenderer.on('zero:broadcast:renderer', (event, {channel, args}) => {
-            EventEmitter.prototype.emit.apply(this, [channel, ...args])
+            super.emit(channel, ...args)
+        })
+        this.on('newListener', event => {
+            electron.ipcRenderer.send('zero:broadcast:subscribe', event, this._windowId)
+        })
+        this.on('removeListener', event => {
+            if(this.listenerCount(event) === 0)
+                electron.ipcRenderer.send('zero:broadcast:unsubscribe', event, this._windowId)
         })
     }
 
     emit(channel, ...args) {
-        electron.ipcRenderer.send('zero:broadcast:main', {channel, args})
+        if(channel === 'newListener' || channel === 'removeListener') {
+          super.emit(channel, ...args)
+        } else {
+          electron.ipcRenderer.send('zero:broadcast:main', {channel, args})
+        }
     }
 }
 
