@@ -58,7 +58,8 @@ class RendererBroadcastObject extends EventEmitter {
 }
 
 if(process && process.type === 'renderer') {
-    electron.remote.require(__filename)
+    // Does not work with Angular!
+    // electron.remote.require(__filename)
     module.exports = new RendererBroadcastObject()
 } else {
     module.exports = new MainBroadcastObject()
