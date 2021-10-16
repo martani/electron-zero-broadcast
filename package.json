@@ -32,5 +32,8 @@
       "standard",
       "eslint:recommended"
     ]
+  },
+  "dependencies": {
+    "@electron/remote": "^2.0.1"
   }
 }

@@ -4,6 +4,10 @@ import EventEmitter from 'events'
 class MainBroadcastObject extends EventEmitter {
     constructor() {
         super()
+
+        // Initialize remote module
+        require('@electron/remote/main').initialize();
+
         electron.ipcMain.on('zero:broadcast:main', (event, {channel, args}) => {
             this.emit(channel, ...args)
         }).on('zero:broadcast:subscribe', (event, type, id) => {
@@ -35,7 +39,7 @@ class MainBroadcastObject extends EventEmitter {
 class RendererBroadcastObject extends EventEmitter {
     constructor() {
         super()
-        this._windowId = electron.remote.getCurrentWindow().id
+        this._windowId = require('@electron/remote').getCurrentWindow().id
         electron.ipcRenderer.on('zero:broadcast:renderer', (event, {channel, args}) => {
             super.emit(channel, ...args)
         })
